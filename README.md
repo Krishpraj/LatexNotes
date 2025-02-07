@@ -1,50 +1,50 @@
-# React + TypeScript + Vite
+# create-react-chrome-extension
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+create-react-chrome-extension is a template for building Chrome and Firefox extensions using React and state-of-the-art settings. This project aims to provide a solid starting point for developers looking to create browser extensions with modern web technologies.
 
-Currently, two official plugins are available:
+Consider giving it a ⭐️ if you like it to show your support!
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Features
 
-## Expanding the ESLint configuration
+- **React**: Build your extension's UI with the popular JavaScript library.
+- **State-of-the-art settings**: The template is configured with the latest best practices in mind.
+- **Support for Chrome and Firefox**: Develop extensions that are compatible with two of the most widely used web browsers.
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+## Getting Started
 
-- Configure the top-level `parserOptions` property like this:
+To use this template, clone the repository to your local machine:
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+```bash
+git clone https://github.com/snwfdhmp/create-react-chrome-extension.git
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+Then, navigate into the project directory and install the dependencies:
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
-
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
+```bash
+cd create-react-chrome-extension
+yarn install
 ```
+
+Then you can build the app:
+
+```bash
+yarn build
+```
+
+Then install the unpacked extension from `dist` folder in Chrome ([tutorial](https://github.com/web-scrobbler/web-scrobbler/wiki/Install-an-unpacked-extension)) or Firefox ([tutorial](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Your_first_WebExtension#installing)).
+
+## Development
+
+For live reload development, use
+
+```bash
+yarn dev
+```
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a pull request.
+
+## License
+
+This project is open source and available under the [MIT License](LICENSE).
