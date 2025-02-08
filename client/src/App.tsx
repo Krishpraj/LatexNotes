@@ -111,22 +111,34 @@ function App() {
               variant="contained"
               color="primary"
               onClick={() => {
-                if (fileUrl) {
-                  window.open(fileUrl, '_blank');
-                }
+                const blob = new Blob([latex], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'math_notes.tex';
+                link.click();
+                URL.revokeObjectURL(url);
               }}
             >
               Download LaTeX
             </Button>
-            {overleafUrl && (
-              <Button
-                variant="contained"
+            <form action="https://www.overleaf.com/docs" method="post" target="_blank" style={{ display: 'inline' }}>
+              <input type="hidden" name="snip" value={`\\documentclass{article}
+\\usepackage{amsmath}
+\\usepackage{amssymb}
+\\usepackage{amsfonts}
+
+\\begin{document}
+${latex}
+\\end{document}`} />
+              <Button 
+                variant="contained" 
                 color="secondary"
-                onClick={() => window.open(overleafUrl, '_blank')}
+                type="submit"
               >
                 Open in Overleaf
               </Button>
-            )}
+            </form>
           </Box>
         </Box>
       )}

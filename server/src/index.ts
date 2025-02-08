@@ -9,8 +9,6 @@ import { exec } from 'child_process';
 import fs from 'fs/promises';
 import path from 'path';
 import axios from 'axios';
-import { writeFile } from 'fs/promises';
-import { nanoid } from 'nanoid';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -56,6 +54,11 @@ await fs.mkdir(TEMP_DIR, { recursive: true });
 // Add static file serving
 app.use('/files', express.static(TEMP_DIR));
 
+// Add debug logging function
+function debugLog(message: string, data: any) {
+  console.log(`[DEBUG] ${message}:`, data);
+}
+
 app.post('/api/analyze', upload.single('image'), async (req, res) => {
   try {
     if (!req.file) {
@@ -85,31 +88,7 @@ app.post('/api/analyze', upload.single('image'), async (req, res) => {
     const result = await model.generateContent(parts);
     const latex = result.response.text();
     
-    // Generate unique filename
-    const filename = `latex_${nanoid()}.tex`;
-    const filePath = path.join(TEMP_DIR, filename);
-    
-    // Create LaTeX document
-    const texContent = `\\documentclass{article}
-\\usepackage{amsmath}
-\\usepackage{amssymb}
-\\usepackage{amsfonts}
-\\begin{document}
-${latex}
-\\end{document}`;
-
-    // Save file
-    await writeFile(filePath, texContent);
-    
-    // Generate URLs
-    const fileUrl = `http://localhost:${PORT}/files/${filename}`;
-    const overleafUrl = `https://www.overleaf.com/docs?snip_uri=${encodeURIComponent(fileUrl)}`;
-
-    res.json({
-      latex,
-      fileUrl,
-      overleafUrl
-    });
+    res.json({ latex });
 
   } catch (error) {
     console.error('Error:', error);
