@@ -1,34 +1,21 @@
 import { useState } from 'react';
-import { Box, Button, Container, TextField, Typography } from '@mui/material';
-import 'katex/dist/katex.min.css';
-import { InlineMath } from 'react-katex';
-
-interface ApiResponse {
-  latex?: string;
-  fileUrl?: string;
-  overleafUrl?: string;
-  error?: string;
-}
+import { Upload, FileText } from 'lucide-react';
+import { Button } from './components/ui/button';
+import { Card } from './components/ui/card';
+import { toast } from "./hooks/use-toast";
 
 function App() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [latex, setLatex] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string>('');
-  const [fileUrl, setFileUrl] = useState<string | null>(null);
-  const [overleafUrl, setOverleafUrl] = useState<string | null>(null);
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      setError('');
-    }
-  };
 
   const handleUpload = async () => {
     if (!selectedFile) {
-      setError('Please select a file');
+      toast({
+        title: "No file selected",
+        description: "Please select an image to convert",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -41,108 +28,109 @@ function App() {
         method: 'POST',
         body: formData,
       });
-      const data: ApiResponse = await response.json();
+      const data = await response.json();
       
-      if (data.error) {
-        throw new Error(data.error);
-      }
+      if (data.error) throw new Error(data.error);
       
-      setLatex(data.latex || '');
-      setFileUrl(data.fileUrl || null);
-      setOverleafUrl(data.overleafUrl || null);
+      setLatex(data.latex);
+      toast({
+        title: "Conversion successful",
+        description: "Your math notes have been converted to LaTeX",
+      });
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Failed to process image');
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to process image",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
-      <Typography variant="h4" gutterBottom>
-        Math Notes to LaTeX
-      </Typography>
-      
-      <Box sx={{ mb: 3 }}>
-        <Button variant="contained" component="label">
-          Choose File
-          <input type="file" hidden accept="image/*" onChange={handleFileChange} />
-        </Button>
-        <Button 
-          variant="contained" 
-          onClick={handleUpload} 
-          disabled={!selectedFile || loading}
-          sx={{ ml: 2 }}
-        >
-          Convert
-        </Button>
-      </Box>
+    <div className="min-h-screen p-4">
+      <div className="max-w-2xl mx-auto space-y-6">
+        <header className="text-center space-y-2">
+          <h1 className="text-2xl font-bold">Math Notes to LaTeX</h1>
+          <p className="text-muted-foreground">Convert handwritten math to LaTeX</p>
+        </header>
 
-      {error && (
-        <Typography color="error" sx={{ mb: 2 }}>
-          {error}
-        </Typography>
-      )}
+        <Card className="p-6">
+          <div className="space-y-4">
+            <label className="border-2 border-dashed rounded-lg p-8 flex flex-col items-center cursor-pointer hover:border-primary">
+              <Upload className="h-8 w-8 mb-2 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">Upload image</span>
+              <input
+                type="file"
+                className="hidden"
+                accept="image/*"
+                onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+              />
+            </label>
 
-      {loading && <Typography>Processing image...</Typography>}
+            {selectedFile && (
+              <div className="flex items-center gap-2 text-sm">
+                <FileText className="h-4 w-4" />
+                <span>{selectedFile.name}</span>
+              </div>
+            )}
 
-      {latex && (
-        <Box sx={{ mt: 3 }}>
-          <Typography variant="h6" gutterBottom>
-            LaTeX Code:
-          </Typography>
-          <TextField
-            multiline
-            fullWidth
-            value={latex}
-            rows={4}
-            variant="outlined"
-          />
-          
-          <Typography variant="h6" sx={{ mt: 3, mb: 1 }}>
-            Preview:
-          </Typography>
-          <Box sx={{ p: 2, border: 1, borderColor: 'grey.300', borderRadius: 1 }}>
-            <InlineMath math={latex} />
-          </Box>
-
-          <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
             <Button
-              variant="contained"
-              color="primary"
-              onClick={() => {
-                const blob = new Blob([latex], { type: 'text/plain' });
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = 'math_notes.tex';
-                link.click();
-                URL.revokeObjectURL(url);
-              }}
+              className="w-full"
+              onClick={handleUpload}
+              disabled={!selectedFile || loading}
             >
-              Download LaTeX
+              {loading ? "Converting..." : "Convert to LaTeX"}
             </Button>
-            <form action="https://www.overleaf.com/docs" method="post" target="_blank" style={{ display: 'inline' }}>
-              <input type="hidden" name="snip" value={`\\documentclass{article}
-\\usepackage{amsmath}
-\\usepackage{amssymb}
-\\usepackage{amsfonts}
+          </div>
+        </Card>
 
-\\begin{document}
-${latex}
-\\end{document}`} />
-              <Button 
-                variant="contained" 
-                color="secondary"
-                type="submit"
+        {latex && (
+          <Card className="p-6 space-y-4">
+            <h2 className="font-semibold">Generated LaTeX</h2>
+            <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-sm">
+              <code>{latex}</code>
+            </pre>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  const blob = new Blob([latex], { type: 'text/plain' });
+                  const url = URL.createObjectURL(blob);
+                  const link = document.createElement('a');
+                  link.href = url;
+                  link.download = 'math_notes.tex';
+                  link.click();
+                  URL.revokeObjectURL(url);
+                }}
               >
-                Open in Overleaf
+                Download LaTeX
               </Button>
-            </form>
-          </Box>
-        </Box>
-      )}
-    </Container>
+              <form
+                action="https://www.overleaf.com/docs"
+                method="post"
+                target="_blank"
+              >
+                <input
+                  type="hidden"
+                  name="snip"
+                  value={`\\documentclass{article}
+                      \\usepackage{amsmath}
+                      \\usepackage{amssymb}
+                      \\usepackage{amsfonts}
+
+                      \\begin{document}
+                      ${latex}
+                      \\end{document}`}
+                />
+                <Button type="submit">Open in Overleaf</Button>
+              </form>
+            </div>
+          </Card>
+        )}
+      </div>
+    </div>
   );
 }
 
