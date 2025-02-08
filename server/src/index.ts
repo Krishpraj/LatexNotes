@@ -5,6 +5,12 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
+import { exec } from 'child_process';
+import fs from 'fs/promises';
+import path from 'path';
+import axios from 'axios';
+import { writeFile } from 'fs/promises';
+import { nanoid } from 'nanoid';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -42,6 +48,14 @@ async function validateApiKey() {
   }
 }
 
+const TEMP_DIR = path.join(__dirname, '../public');
+
+// Ensure temp directory exists
+await fs.mkdir(TEMP_DIR, { recursive: true });
+
+// Add static file serving
+app.use('/files', express.static(TEMP_DIR));
+
 app.post('/api/analyze', upload.single('image'), async (req, res) => {
   try {
     if (!req.file) {
@@ -69,10 +83,33 @@ app.post('/api/analyze', upload.single('image'), async (req, res) => {
 
     // Generate content
     const result = await model.generateContent(parts);
+    const latex = result.response.text();
+    
+    // Generate unique filename
+    const filename = `latex_${nanoid()}.tex`;
+    const filePath = path.join(TEMP_DIR, filename);
+    
+    // Create LaTeX document
+    const texContent = `\\documentclass{article}
+\\usepackage{amsmath}
+\\usepackage{amssymb}
+\\usepackage{amsfonts}
+\\begin{document}
+${latex}
+\\end{document}`;
 
-    const response = await result.response;
-    const latex = response.text();
-    res.json({ latex });
+    // Save file
+    await writeFile(filePath, texContent);
+    
+    // Generate URLs
+    const fileUrl = `http://localhost:${PORT}/files/${filename}`;
+    const overleafUrl = `https://www.overleaf.com/docs?snip_uri=${encodeURIComponent(fileUrl)}`;
+
+    res.json({
+      latex,
+      fileUrl,
+      overleafUrl
+    });
 
   } catch (error) {
     console.error('Error:', error);

@@ -5,6 +5,8 @@ import { InlineMath } from 'react-katex';
 
 interface ApiResponse {
   latex?: string;
+  fileUrl?: string;
+  overleafUrl?: string;
   error?: string;
 }
 
@@ -13,6 +15,8 @@ function App() {
   const [latex, setLatex] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
+  const [fileUrl, setFileUrl] = useState<string | null>(null);
+  const [overleafUrl, setOverleafUrl] = useState<string | null>(null);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -44,6 +48,8 @@ function App() {
       }
       
       setLatex(data.latex || '');
+      setFileUrl(data.fileUrl || null);
+      setOverleafUrl(data.overleafUrl || null);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Failed to process image');
     } finally {
@@ -98,6 +104,29 @@ function App() {
           </Typography>
           <Box sx={{ p: 2, border: 1, borderColor: 'grey.300', borderRadius: 1 }}>
             <InlineMath math={latex} />
+          </Box>
+
+          <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => {
+                if (fileUrl) {
+                  window.open(fileUrl, '_blank');
+                }
+              }}
+            >
+              Download LaTeX
+            </Button>
+            {overleafUrl && (
+              <Button
+                variant="contained"
+                color="secondary"
+                onClick={() => window.open(overleafUrl, '_blank')}
+              >
+                Open in Overleaf
+              </Button>
+            )}
           </Box>
         </Box>
       )}
