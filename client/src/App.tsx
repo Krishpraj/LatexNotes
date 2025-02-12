@@ -8,6 +8,7 @@ import type { Project, Page } from '@/types';
 import { ProjectSidebar } from '@/components/project-sidebar';
 import { Logo } from './components/ui/logo';
 import { ProjectView } from './components/project-view';
+import { LatexPreview } from '@/components/latex-preview';
 
 function App() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -376,22 +377,7 @@ function App() {
                           {showPreview && (
                             <div className="mt-6">
                               <h2 className="text-xl font-semibold text-white mb-4">Preview</h2>
-                              <div className="bg-white rounded-lg overflow-hidden">
-                                <iframe
-                                  srcDoc={`
-                                    <!DOCTYPE html>
-                                    <html>
-                                      <head>
-                                        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-                                      </head>
-                                      <body style="padding: 20px;">
-                                        $$${currentPage.latex}$$
-                                      </body>
-                                    </html>
-                                  `}
-                                  className="w-full h-[400px] border-0"
-                                />
-                              </div>
+                              <LatexPreview latex={currentPage.latex} />
                             </div>
                           )}
                         </div>
