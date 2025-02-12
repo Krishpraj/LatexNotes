@@ -8,7 +8,6 @@ import type { Project, Page } from '@/types';
 import { ProjectSidebar } from '@/components/project-sidebar';
 import { Logo } from './components/ui/logo';
 import { ProjectView } from './components/project-view';
-import { LatexPreview } from '@/components/latex-preview';
 
 function App() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -18,6 +17,7 @@ function App() {
   const [currentProject, setCurrentProject] = useState<Project | null>(null);
   const [currentPage, setCurrentPage] = useState<Page | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [compiledPdfUrl, setCompiledPdfUrl] = useState<string | null>(null);
 
   // Load projects from localStorage on mount
   useEffect(() => {
@@ -253,6 +253,27 @@ function App() {
     });
   };
 
+  // Updated function to post LaTeX code to the server and get compiled PDF
+  const handlePreviewRequest = async () => {
+    try {
+      const response = await fetch('http://localhost:3001/api/compile-latex', { // updated port here
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ latex }),
+      });
+      if (!response.ok) throw new Error('Failed to compile LaTeX');
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      setCompiledPdfUrl(url);
+    } catch (error) {
+      toast({
+        title: "Preview Error",
+        description: error instanceof Error ? error.message : "Preview failed",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="flex h-screen bg-gray-950">
       <ProjectSidebar
@@ -363,7 +384,15 @@ function App() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => setShowPreview(!showPreview)}
+                                onClick={async () => {
+                                  if (!showPreview) {
+                                    await handlePreviewRequest();
+                                    setShowPreview(true);
+                                  } else {
+                                    setShowPreview(false);
+                                    setCompiledPdfUrl(null);
+                                  }
+                                }}
                               >
                                 {showPreview ? 'Hide Preview' : 'Show Preview'}
                               </Button>
@@ -374,10 +403,14 @@ function App() {
                             <code>{currentPage.latex}</code>
                           </pre>
 
-                          {showPreview && (
+                          {showPreview && compiledPdfUrl && (
                             <div className="mt-6">
                               <h2 className="text-xl font-semibold text-white mb-4">Preview</h2>
-                              <LatexPreview latex={currentPage.latex} />
+                              <iframe
+                                src={compiledPdfUrl}
+                                className="w-full h-[600px] border border-gray-700 rounded-lg"
+                                title="LaTeX Preview"
+                              ></iframe>
                             </div>
                           )}
                         </div>
