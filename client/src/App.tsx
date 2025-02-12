@@ -16,6 +16,7 @@ function App() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [currentProject, setCurrentProject] = useState<Project | null>(null);
   const [currentPage, setCurrentPage] = useState<Page | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
 
   // Load projects from localStorage on mount
   useEffect(() => {
@@ -229,6 +230,28 @@ function App() {
     setLatex('');
   };
 
+  const handleDeletePage = (projectId: string, pageId: string) => {
+    const project = projects.find(p => p.id === projectId);
+    if (!project) return;
+
+    const updatedProject = {
+      ...project,
+      pages: project.pages.filter(p => p.id !== pageId)
+    };
+
+    setProjects(prev => prev.map(p => 
+      p.id === projectId ? updatedProject : p
+    ));
+    setCurrentProject(updatedProject);
+    setCurrentPage(null);
+    setLatex('');
+    
+    toast({
+      title: "Page deleted",
+      description: "Page has been removed from the project",
+    });
+  };
+
   return (
     <div className="flex h-screen bg-gray-950">
       <ProjectSidebar
@@ -303,99 +326,121 @@ function App() {
                 {/* Upload Card */}
                 <Card className="bg-gray-900/50 border-gray-800/50">
                   <div className="p-8 space-y-6">
-                    <label className="group relative block border-2 border-dashed border-gray-700 rounded-xl p-12 hover:border-blue-500 transition-all cursor-pointer">
-                      <input
-                        type="file"
-                        className="hidden"
-                        accept="image/*"
-                        onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                      />
-                      <div className="flex flex-col items-center">
-                        <div className="p-4 bg-blue-500/10 rounded-full mb-4 group-hover:bg-blue-500/20 transition-colors">
-                          <Upload className="h-8 w-8 text-blue-500" />
+                    {currentPage.latex ? (
+                      <div className="space-y-6">
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              setSelectedFile(null);
+                              setLatex(currentPage.latex);
+                            }}
+                          >
+                            <Upload className="h-4 w-4 mr-2" />
+                            Re-upload
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            onClick={() => handleDeletePage(currentProject.id, currentPage.id)}
+                          >
+                            Delete Page
+                          </Button>
                         </div>
-                        <p className="text-gray-400 mb-2 font-medium">Drop your image here or click to upload</p>
-                        <p className="text-gray-500 text-sm">Supports PNG, JPG, or WebP</p>
-                      </div>
-                    </label>
+                        
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between">
+                            <h2 className="text-xl font-semibold text-white">LaTeX Code</h2>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => copyToClipboard(currentPage.latex)}
+                              >
+                                <Copy className="h-4 w-4 mr-2" />
+                                Copy
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setShowPreview(!showPreview)}
+                              >
+                                {showPreview ? 'Hide Preview' : 'Show Preview'}
+                              </Button>
+                            </div>
+                          </div>
+                          
+                          <pre className="bg-gray-800/50 p-6 rounded-lg overflow-x-auto text-sm text-gray-300 border border-gray-700">
+                            <code>{currentPage.latex}</code>
+                          </pre>
 
-                    {selectedFile && (
-                      <div className="flex items-center gap-3 p-4 bg-gray-800/50 rounded-lg border border-gray-700">
-                        <FileText className="h-5 w-5 text-blue-500" />
-                        <span className="text-gray-300">{selectedFile.name}</span>
+                          {showPreview && (
+                            <div className="mt-6">
+                              <h2 className="text-xl font-semibold text-white mb-4">Preview</h2>
+                              <div className="bg-white rounded-lg overflow-hidden">
+                                <iframe
+                                  srcDoc={`
+                                    <!DOCTYPE html>
+                                    <html>
+                                      <head>
+                                        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+                                      </head>
+                                      <body style="padding: 20px;">
+                                        $$${currentPage.latex}$$
+                                      </body>
+                                    </html>
+                                  `}
+                                  className="w-full h-[400px] border-0"
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <label className="group relative block border-2 border-dashed border-gray-700 rounded-xl p-12 hover:border-blue-500 transition-all cursor-pointer">
+                        <input
+                          type="file"
+                          className="hidden"
+                          accept="image/*"
+                          onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                        />
+                        <div className="flex flex-col items-center">
+                          <div className="p-4 bg-blue-500/10 rounded-full mb-4 group-hover:bg-blue-500/20 transition-colors">
+                            <Upload className="h-8 w-8 text-blue-500" />
+                          </div>
+                          <p className="text-gray-400 mb-2 font-medium">Drop your image here or click to upload</p>
+                          <p className="text-gray-500 text-sm">Supports PNG, JPG, or WebP</p>
+                        </div>
+                      </label>
+                    )}
+                    
+                    {selectedFile && !currentPage.latex && (
+                      <div className="mt-4">
+                        <div className="flex items-center gap-3 p-4 bg-gray-800/50 rounded-lg border border-gray-700">
+                          <FileText className="h-5 w-5 text-blue-500" />
+                          <span className="text-gray-300">{selectedFile.name}</span>
+                        </div>
+                        <Button
+                          className="w-full mt-4 bg-blue-600 hover:bg-blue-500 text-white py-6 text-lg"
+                          onClick={handleUpload}
+                          disabled={loading}
+                        >
+                          {loading ? (
+                            <div className="flex items-center gap-2">
+                              <div className="animate-spin rounded-full h-5 w-5 border-2 border-white/30 border-t-white" />
+                              Converting...
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              Convert to LaTeX
+                              <ChevronRight className="h-5 w-5" />
+                            </div>
+                          )}
+                        </Button>
                       </div>
                     )}
-
-                    <Button
-                      className="w-full bg-blue-600 hover:bg-blue-500 text-white py-6 text-lg"
-                      onClick={handleUpload}
-                      disabled={!selectedFile || loading}
-                    >
-                      {loading ? (
-                        <div className="flex items-center gap-2">
-                          <div className="animate-spin rounded-full h-5 w-5 border-2 border-white/30 border-t-white" />
-                          Converting...
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-2">
-                          Convert to LaTeX
-                          <ChevronRight className="h-5 w-5" />
-                        </div>
-                      )}
-                    </Button>
                   </div>
                 </Card>
-
-                {/* LaTeX Display */}
-                {latex && (
-                  <Card className="bg-gray-900/50 border-gray-800/50">
-                    <div className="p-8 space-y-6">
-                      <div className="flex items-center justify-between">
-                        <h2 className="text-xl font-semibold text-white">Generated LaTeX</h2>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => copyToClipboard(latex)}
-                            className="hover:text-blue-500"
-                          >
-                            <Copy className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => {
-                              const blob = new Blob([latex], { type: 'text/plain' });
-                              const url = URL.createObjectURL(blob);
-                              const link = document.createElement('a');
-                              link.href = url;
-                              link.download = 'math_notes.tex';
-                              link.click();
-                              URL.revokeObjectURL(url);
-                            }}
-                            className="hover:text-blue-500"
-                          >
-                            <Download className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                      <pre className="bg-gray-800/50 p-6 rounded-lg overflow-x-auto text-sm text-gray-300 border border-gray-700">
-                        <code>{latex}</code>
-                      </pre>
-                      <form
-                        action="https://www.overleaf.com/docs"
-                        method="post"
-                        target="_blank"
-                        className="flex justify-end"
-                      >
-                        <input type="hidden" name="snip" value={`\\documentclass{article}\n\\usepackage{amsmath}\n\\usepackage{amssymb}\n\\usepackage{amsfonts}\n\n\\begin{document}\n${latex}\n\\end{document}`} />
-                        <Button type="submit" className="bg-green-600 hover:bg-green-500 text-white">
-                          Open in Overleaf
-                        </Button>
-                      </form>
-                    </div>
-                  </Card>
-                )}
               </div>
             )}
           </div>
