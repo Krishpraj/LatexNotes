@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Upload, FileText, ChevronRight, Github, Copy, Download, Pencil } from 'lucide-react';
+import { Upload, FileText, ChevronRight, Github, Copy, Download} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { toast } from "@/hooks/use-toast";
@@ -15,8 +15,6 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);
   const [currentProject, setCurrentProject] = useState<Project | null>(null);
-  const [editingDescription, setEditingDescription] = useState(false);
-  const [descriptionValue, setDescriptionValue] = useState('');
   const [currentPage, setCurrentPage] = useState<Page | null>(null);
 
   // Load projects from localStorage on mount
@@ -42,7 +40,8 @@ function App() {
       name,
       description: '',
       pages: [],
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      notes: ''
     };
     setProjects(prev => [...prev, newProject]);
     setCurrentProject(newProject);
@@ -65,10 +64,10 @@ function App() {
   };
 
   const handleUpload = async () => {
-    if (!selectedFile || !currentProject) {
+    if (!selectedFile || !currentProject || !currentPage) {
       toast({
         title: "Error",
-        description: !selectedFile ? "Please select an image" : "Please create or select a project",
+        description: !selectedFile ? "Please select an image" : "Please select a page",
         variant: "destructive",
       });
       return;
@@ -87,28 +86,26 @@ function App() {
       
       if (data.error) throw new Error(data.error);
       
-      const newPage: Page = {
-        id: nanoid(),
-        title: `Page ${currentProject.pages.length + 1}`,
-        latex: data.latex,
-        createdAt: new Date().toISOString()
-      };
-
+      // Update existing page instead of creating a new one
       const updatedProject = {
         ...currentProject,
-        pages: [...currentProject.pages, newPage]
+        pages: currentProject.pages.map(page => 
+          page.id === currentPage.id 
+            ? { ...page, latex: data.latex }
+            : page
+        )
       };
 
       setProjects(prev => prev.map(p => 
         p.id === currentProject.id ? updatedProject : p
       ));
       setCurrentProject(updatedProject);
-      setCurrentPage(newPage); // Set the new page as current
+      setCurrentPage({ ...currentPage, latex: data.latex });
       setLatex(data.latex);
 
       toast({
         title: "Success",
-        description: "LaTeX generated and page created",
+        description: "LaTeX generated successfully",
       });
     } catch (error) {
       toast({
@@ -206,13 +203,6 @@ ${page.latex}
       title: "Copied to clipboard",
       description: "LaTeX code has been copied to your clipboard",
     });
-  };
-
-  const handleUpdateDescription = (projectId: string, description: string) => {
-    setProjects(prev => prev.map(p => 
-      p.id === projectId ? { ...p, description } : p
-    ));
-    setEditingDescription(false);
   };
 
   const handleCreateEmptyPage = (projectId: string) => {
