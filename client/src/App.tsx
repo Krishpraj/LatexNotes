@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
-import { Upload, FileText, ChevronRight, Github, Copy, Download } from 'lucide-react';
+import { Upload, FileText, ChevronRight, Github, Copy, Download, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { toast } from "@/hooks/use-toast";
 import { nanoid } from 'nanoid';
 import type { Project, Page } from '@/types';
 import { ProjectSidebar } from '@/components/project-sidebar';
+import { Logo } from './components/ui/logo';
+import { ProjectView } from './components/project-view';
 
 function App() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -13,6 +15,9 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);
   const [currentProject, setCurrentProject] = useState<Project | null>(null);
+  const [editingDescription, setEditingDescription] = useState(false);
+  const [descriptionValue, setDescriptionValue] = useState('');
+  const [currentPage, setCurrentPage] = useState<Page | null>(null);
 
   // Load projects from localStorage on mount
   useEffect(() => {
@@ -35,6 +40,7 @@ function App() {
     const newProject: Project = {
       id: nanoid(),
       name,
+      description: '',
       pages: [],
       createdAt: new Date().toISOString()
     };
@@ -48,11 +54,13 @@ function App() {
 
   const handleSelectProject = (project: Project) => {
     setCurrentProject(project);
-    setLatex(''); // Clear current latex when switching projects
+    setCurrentPage(null); // Clear current page when switching projects
+    setLatex('');
   };
 
   const handleSelectPage = (project: Project, page: Page) => {
     setCurrentProject(project);
+    setCurrentPage(page);
     setLatex(page.latex);
   };
 
@@ -95,6 +103,7 @@ function App() {
         p.id === currentProject.id ? updatedProject : p
       ));
       setCurrentProject(updatedProject);
+      setCurrentPage(newPage); // Set the new page as current
       setLatex(data.latex);
 
       toast({
@@ -112,18 +121,53 @@ function App() {
     }
   };
 
-  const handleUpdatePage = (projectId: string, pageId: string, newTitle: string) => {
-    setProjects(prev => prev.map(project => {
-      if (project.id === projectId) {
-        return {
-          ...project,
-          pages: project.pages.map(page => 
-            page.id === pageId ? { ...page, title: newTitle } : page
-          )
-        };
-      }
-      return project;
-    }));
+  const handleUpdatePage = async (projectId: string, pageId: string, file: File) => {
+    setLoading(true);
+    const formData = new FormData();
+    formData.append('image', file);
+
+    try {
+      const response = await fetch('http://localhost:3001/api/analyze', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await response.json();
+      
+      if (data.error) throw new Error(data.error);
+
+      setProjects(prev => prev.map(project => {
+        if (project.id === projectId) {
+          return {
+            ...project,
+            pages: project.pages.map(page => 
+              page.id === pageId ? { ...page, latex: data.latex } : page
+            )
+          };
+        }
+        return project;
+      }));
+
+      setCurrentPage(prev => prev && prev.id === pageId ? { ...prev, latex: data.latex } : prev);
+      setLatex(data.latex);
+      toast({
+        title: "Success",
+        description: "Page updated successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to process image",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdateProject = (projectId: string, updates: Partial<Project>) => {
+    setProjects(prev => prev.map(p => 
+      p.id === projectId ? { ...p, ...updates } : p
+    ));
   };
 
   const handleExportProject = (project: Project) => {
@@ -164,51 +208,110 @@ ${page.latex}
     });
   };
 
+  const handleUpdateDescription = (projectId: string, description: string) => {
+    setProjects(prev => prev.map(p => 
+      p.id === projectId ? { ...p, description } : p
+    ));
+    setEditingDescription(false);
+  };
+
+  const handleCreateEmptyPage = (projectId: string) => {
+    const project = projects.find(p => p.id === projectId);
+    if (!project) return;
+
+    const newPage: Page = {
+      id: nanoid(),
+      title: `Page ${project.pages.length + 1}`,
+      latex: '',
+      createdAt: new Date().toISOString()
+    };
+
+    const updatedProject = {
+      ...project,
+      pages: [...project.pages, newPage]
+    };
+
+    setProjects(prev => prev.map(p => 
+      p.id === projectId ? updatedProject : p
+    ));
+    setCurrentProject(updatedProject);
+    setCurrentPage(newPage); // Set the new page as current
+    setLatex('');
+  };
+
   return (
-    <div className="flex h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="flex h-screen bg-gray-950">
       <ProjectSidebar
         projects={projects}
         currentProject={currentProject || undefined}
-        currentPage={undefined}
+        currentPage={currentPage || undefined}
         onSelectProject={handleSelectProject}
         onSelectPage={handleSelectPage}
         onCreateProject={handleCreateProject}
         onUpdatePage={handleUpdatePage}
         onExportProject={handleExportProject}
+        onCreatePage={handleCreateEmptyPage}
       />
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        <nav className="border-b border-gray-800/50 backdrop-blur-sm bg-gray-900/30">
-          <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <FileText className="h-6 w-6 text-blue-500" />
-              <span className="text-xl font-semibold bg-gradient-to-r from-blue-400 to-blue-600 text-transparent bg-clip-text">
-                MathLaTeX
-              </span>
-            </div>
-            <a href="https://github.com/yourusername/mathlatex" className="text-gray-400 hover:text-white transition-colors">
+        <nav className="h-16 border-b border-gray-800/40 bg-gray-950">
+          <div className="h-full px-6 flex items-center justify-between">
+            <Logo />
+            <a
+              href="https://github.com/yourusername/thorem"
+              className="p-2 rounded-md text-gray-400 hover:text-gray-100 
+                         hover:bg-gray-800/50 transition-all"
+            >
               <Github className="h-5 w-5" />
             </a>
           </div>
         </nav>
 
-        <main className="flex-1 overflow-auto">
+        <main className="flex-1 overflow-auto bg-gradient-to-b from-gray-950 to-gray-900">
           <div className="max-w-5xl mx-auto px-4 py-12">
             {!currentProject ? (
               <div className="text-center">
                 <h2 className="text-xl font-semibold text-gray-400 mb-4">No Project Selected</h2>
                 <p className="text-gray-500 mb-4">Create a new project to get started</p>
               </div>
+            ) : !currentPage ? (
+              <ProjectView 
+                project={currentProject} 
+                onUpdateProject={handleUpdateProject}
+              />
             ) : (
-              <>
-                <div className="mb-6">
-                  <h2 className="text-2xl font-bold text-white">{currentProject.name}</h2>
-                  <p className="text-gray-400">
-                    {currentProject.pages.length} pages • Created {new Date(currentProject.createdAt).toLocaleDateString()}
-                  </p>
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-xl font-semibold text-white">{currentPage.title}</h3>
+                    <p className="text-sm text-gray-400">
+                      Created {new Date(currentPage.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                  {currentPage.latex && (
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => copyToClipboard(currentPage.latex)}
+                      >
+                        <Copy className="h-4 w-4 mr-2" />
+                        Copy LaTeX
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleExportProject(currentProject)}
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        Export
+                      </Button>
+                    </div>
+                  )}
                 </div>
 
-                <Card className="bg-gray-900/50 border-gray-800/50 backdrop-blur-sm">
+                {/* Upload Card */}
+                <Card className="bg-gray-900/50 border-gray-800/50">
                   <div className="p-8 space-y-6">
                     <label className="group relative block border-2 border-dashed border-gray-700 rounded-xl p-12 hover:border-blue-500 transition-all cursor-pointer">
                       <input
@@ -253,8 +356,9 @@ ${page.latex}
                   </div>
                 </Card>
 
+                {/* LaTeX Display */}
                 {latex && (
-                  <Card className="mt-8 bg-gray-900/50 border-gray-800/50 backdrop-blur-sm">
+                  <Card className="bg-gray-900/50 border-gray-800/50">
                     <div className="p-8 space-y-6">
                       <div className="flex items-center justify-between">
                         <h2 className="text-xl font-semibold text-white">Generated LaTeX</h2>
@@ -302,7 +406,7 @@ ${page.latex}
                     </div>
                   </Card>
                 )}
-              </>
+              </div>
             )}
           </div>
         </main>

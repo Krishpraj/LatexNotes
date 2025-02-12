@@ -8,6 +8,8 @@ export interface Page {
 export interface Project {
   id: string;
   name: string;
+  description: string;
+  notes: string;
   pages: Page[];
   createdAt: string;
 }
