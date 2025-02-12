@@ -112,6 +112,50 @@ function App() {
     }
   };
 
+  const handleUpdatePage = (projectId: string, pageId: string, newTitle: string) => {
+    setProjects(prev => prev.map(project => {
+      if (project.id === projectId) {
+        return {
+          ...project,
+          pages: project.pages.map(page => 
+            page.id === pageId ? { ...page, title: newTitle } : page
+          )
+        };
+      }
+      return project;
+    }));
+  };
+
+  const handleExportProject = (project: Project) => {
+    const combinedLatex = `\\documentclass{article}
+\\usepackage{amsmath}
+\\usepackage{amssymb}
+\\usepackage{amsfonts}
+
+\\begin{document}
+
+${project.pages.map(page => `
+% ${page.title}
+${page.latex}
+
+\\newpage
+`).join('\n')}
+\\end{document}`;
+
+    const blob = new Blob([combinedLatex], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${project.name}.tex`;
+    link.click();
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: "Project exported",
+      description: `${project.name} has been exported as LaTeX`,
+    });
+  };
+
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     toast({
@@ -129,6 +173,8 @@ function App() {
         onSelectProject={handleSelectProject}
         onSelectPage={handleSelectPage}
         onCreateProject={handleCreateProject}
+        onUpdatePage={handleUpdatePage}
+        onExportProject={handleExportProject}
       />
 
       <div className="flex-1 flex flex-col overflow-hidden">

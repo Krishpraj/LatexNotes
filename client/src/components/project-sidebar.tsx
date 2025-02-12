@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, FileText } from 'lucide-react';
+import { Plus, FileText, Edit2, Download, Check } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Card } from './ui/card';
@@ -12,6 +12,8 @@ interface ProjectSidebarProps {
   onSelectProject: (project: Project) => void;
   onSelectPage: (project: Project, page: Page) => void;
   onCreateProject: (name: string) => void;
+  onUpdatePage: (projectId: string, pageId: string, newTitle: string) => void;
+  onExportProject: (project: Project) => void;
 }
 
 export function ProjectSidebar({
@@ -21,8 +23,12 @@ export function ProjectSidebar({
   onSelectProject,
   onSelectPage,
   onCreateProject,
+  onUpdatePage,
+  onExportProject,
 }: ProjectSidebarProps) {
   const [newProjectName, setNewProjectName] = useState('');
+  const [editingPage, setEditingPage] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState('');
 
   const handleCreateProject = () => {
     if (newProjectName.trim()) {
@@ -60,13 +66,29 @@ export function ProjectSidebar({
               }`}
               onClick={() => onSelectProject(project)}
             >
-              <h3 className="font-medium">{project.name}</h3>
+              <div className="flex items-center justify-between">
+                <h3 className="font-medium">{project.name}</h3>
+                <div className="flex gap-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onExportProject(project);
+                    }}
+                    title="Export project"
+                  >
+                    <Download className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+              
               {project.pages.length > 0 && (
                 <div className="mt-2 pl-4 space-y-1">
                   {project.pages.map((page) => (
                     <div
                       key={page.id}
-                      className={`flex items-center gap-2 p-1 rounded text-sm cursor-pointer hover:bg-gray-700/50 ${
+                      className={`flex items-center justify-between p-1 rounded text-sm cursor-pointer hover:bg-gray-700/50 ${
                         currentPage?.id === page.id ? 'bg-gray-700/50 text-blue-400' : ''
                       }`}
                       onClick={(e) => {
@@ -74,8 +96,52 @@ export function ProjectSidebar({
                         onSelectPage(project, page);
                       }}
                     >
-                      <FileText className="h-4 w-4" />
-                      <span>{page.title}</span>
+                      {editingPage === page.id ? (
+                        <div className="flex items-center gap-2 flex-1">
+                          <Input
+                            value={editValue}
+                            onChange={(e) => setEditValue(e.target.value)}
+                            className="h-6 text-sm"
+                            autoFocus
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                onUpdatePage(project.id, page.id, editValue);
+                                setEditingPage(null);
+                              }
+                            }}
+                          />
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => {
+                              onUpdatePage(project.id, page.id, editValue);
+                              setEditingPage(null);
+                            }}
+                          >
+                            <Check className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div
+                          className="flex items-center gap-2 flex-1"
+                          onClick={() => onSelectPage(project, page)}
+                        >
+                          <FileText className="h-4 w-4" />
+                          <span>{page.title}</span>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="ml-auto opacity-0 group-hover:opacity-100"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingPage(page.id);
+                              setEditValue(page.title);
+                            }}
+                          >
+                            <Edit2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
