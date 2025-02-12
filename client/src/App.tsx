@@ -169,19 +169,19 @@ function App() {
 
   const handleExportProject = (project: Project) => {
     const combinedLatex = `\\documentclass{article}
-\\usepackage{amsmath}
-\\usepackage{amssymb}
-\\usepackage{amsfonts}
+                            \\usepackage{amsmath}
+                            \\usepackage{amssymb}
+                            \\usepackage{amsfonts}
 
-\\begin{document}
+                            \\begin{document}
 
-${project.pages.map(page => `
-% ${page.title}
-${page.latex}
+                            ${project.pages.map(page => `
+                            % ${page.title}
+                            ${page.latex}
 
-\\newpage
-`).join('\n')}
-\\end{document}`;
+                            \\newpage
+                            `).join('\n')}
+                            \\end{document}`;
 
     const blob = new Blob([combinedLatex], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
@@ -248,7 +248,7 @@ ${page.latex}
           <div className="h-full px-6 flex items-center justify-between">
             <Logo />
             <a
-              href="https://github.com/yourusername/thorem"
+              href="https://github.com/Kushalpraja/Thorem"
               className="p-2 rounded-md text-gray-400 hover:text-gray-100 
                          hover:bg-gray-800/50 transition-all"
             >
