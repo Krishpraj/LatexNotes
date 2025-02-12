@@ -79,7 +79,18 @@ app.post('/api/analyze', upload.single('image'), async (req, res) => {
     // Create the prompt parts
     const parts = [
       {
-        text: "Convert this mathematical expression into LaTeX code. Only provide the LaTeX code without any explanation."
+      text: `Convert this mathematical expression into LaTeX code. Generate a complete article document with the following specifications:
+      - Use article class with 12pt font
+      - Include packages: amsmath, amssymb, amsthm, tcolorbox, geometry
+      - Create theorem environments in different colored boxes (blue for theorems, green for lemmas, red for corollaries)
+      - Title should be appropriat to the image topic
+      - Include only if relevant other wise keep it simple and ez to read:
+        - Formal theorem statement of the process
+        - Lemma about orthogonality
+        - Proof using induction
+        - Corollary about orthonormal basis
+        - Example in R^2
+      Only provide the code in text format without any explanation.`
       },
       imageData
     ];
