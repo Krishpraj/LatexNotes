@@ -387,11 +387,8 @@ function App() {
                                 onClick={async () => {
                                   if (!showPreview) {
                                     await handlePreviewRequest();
-                                    setShowPreview(true);
-                                  } else {
-                                    setShowPreview(false);
-                                    setCompiledPdfUrl(null);
                                   }
+                                  setShowPreview(prev => !prev);
                                 }}
                               >
                                 {showPreview ? 'Hide Preview' : 'Show Preview'}
@@ -399,19 +396,25 @@ function App() {
                             </div>
                           </div>
                           
-                          <pre className="bg-gray-800/50 p-6 rounded-lg overflow-x-auto text-sm text-gray-300 border border-gray-700">
-                            <code>{currentPage.latex}</code>
-                          </pre>
-
-                          {showPreview && compiledPdfUrl && (
-                            <div className="mt-6">
-                              <h2 className="text-xl font-semibold text-white mb-4">Preview</h2>
+                          {showPreview && compiledPdfUrl ? (
+                            <div className="mt-6 flex gap-0 w-full h-[80vh]">
+                              {/* LaTeX code container spans half the width and full height, with scrollbars hidden */}
+                              <pre className="w-1/2 h-full bg-gray-800/50 p-6 rounded-lg border border-gray-700 overflow-hidden">
+                                <code>{currentPage.latex}</code>
+                              </pre>
+                              {/* PDF preview container spans half the width and full height; scrollbars hidden */}
                               <iframe
-                                src={compiledPdfUrl}
-                                className="w-full h-[600px] border border-gray-700 rounded-lg"
+                                src={`${compiledPdfUrl}#toolbar=0&navpanes=0&scrollbar=0`}
+                                className="w-1/2 h-full border border-gray-700 rounded-lg"
                                 title="LaTeX Preview"
+                                style={{ overflow: 'hidden' }}
                               ></iframe>
                             </div>
+                          ) : (
+                            // When preview is off, display only the LaTeX code (updated to be large as well)
+                            <pre className="w-full h-[80vh] bg-gray-800/50 p-6 rounded-lg border border-gray-700 overflow-hidden">
+                              <code>{currentPage.latex}</code>
+                            </pre>
                           )}
                         </div>
                       </div>

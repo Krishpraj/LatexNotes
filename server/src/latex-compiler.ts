@@ -3,8 +3,12 @@ import { Request, Response } from 'express';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 
-// Resolve tectonic command path relative to __dirname if necessary.
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
 const rawPath = process.env.TECTONIC_PATH || 'tectonic';
 const tectonicCommand = rawPath;
 
@@ -13,21 +17,18 @@ export async function compileLatex(req: Request, res: Response) {
   if (!texSource) {
     return res.status(400).json({ error: "Missing LaTeX source" });
   }
-  // Remove Markdown code fences if present.
   if (texSource.startsWith('```')) {
     const lines = texSource.split('\n');
-    // Remove the first line if it starts with ```
     if (lines[0].trim().startsWith('```')) {
       lines.shift();
     }
-    // Remove the last line if it is exactly ```
     if (lines[lines.length - 1].trim() === '```') {
       lines.pop();
     }
     texSource = lines.join('\n');
   }
 
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'latex-'));
+  const tempDir = fs.mkdtempSync(path.join(__dirname, '../temp/latex-'));
   const tempTexFile = path.join(tempDir, 'source.tex');
   fs.writeFileSync(tempTexFile, texSource);
 
