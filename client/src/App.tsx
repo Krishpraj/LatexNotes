@@ -303,169 +303,135 @@ function App() {
         </nav>
 
         <main className="flex-1 overflow-auto bg-gradient-to-b from-gray-950 to-gray-900">
-          <div className="max-w-5xl mx-auto px-4 py-12">
-            {!currentProject ? (
-              <div className="text-center">
-                <h2 className="text-xl font-semibold text-gray-400 mb-4">No Project Selected</h2>
-                <p className="text-gray-500 mb-4">Create a new project to get started</p>
-              </div>
-            ) : !currentPage ? (
+          {!currentProject ? (
+            <div className="text-center p-8">
+              <h2 className="text-xl font-semibold text-gray-400 mb-4">No Project Selected</h2>
+              <p className="text-gray-500">Create a new project to get started</p>
+            </div>
+          ) : !currentPage ? (
+            <div className="p-8">
               <ProjectView 
                 project={currentProject} 
                 onUpdateProject={handleUpdateProject}
               />
-            ) : (
-              <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-xl font-semibold text-white">{currentPage.title}</h3>
-                    <p className="text-sm text-gray-400">
-                      Created {new Date(currentPage.createdAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                  {currentPage.latex && (
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => copyToClipboard(currentPage.latex)}
-                      >
-                        <Copy className="h-4 w-4 mr-2" />
-                        Copy LaTeX
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleExportProject(currentProject)}
-                      >
-                        <Download className="h-4 w-4 mr-2" />
-                        Export
-                      </Button>
-                    </div>
-                  )}
+            </div>
+          ) : (
+            <div className="flex flex-col h-full">
+              <div className="flex justify-between items-center p-4 border-b border-gray-800/40">
+                <div>
+                  <h3 className="text-xl font-semibold text-white">{currentPage.title}</h3>
+                  <p className="text-sm text-gray-400">
+                    Created {new Date(currentPage.createdAt).toLocaleDateString()}
+                  </p>
                 </div>
+                {currentPage.latex && (
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={() => copyToClipboard(currentPage.latex)}>
+                      <Copy className="h-4 w-4 mr-2" />
+                      Copy LaTeX
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => handleExportProject(currentProject)}>
+                      <Download className="h-4 w-4 mr-2" />
+                      Export
+                    </Button>
+                  </div>
+                )}
+              </div>
 
-                {/* Upload Card */}
-                <Card className="bg-gray-900/50 border-gray-800/50">
-                  <div className="p-8 space-y-6">
-                    {currentPage.latex ? (
-                      <div className="space-y-6">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="outline"
-                            onClick={() => {
-                              setSelectedFile(null);
-                              setLatex(currentPage.latex);
-                            }}
-                          >
-                            <Upload className="h-4 w-4 mr-2" />
-                            Re-upload
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            onClick={() => handleDeletePage(currentProject.id, currentPage.id)}
-                          >
-                            Delete Page
-                          </Button>
-                        </div>
-                        
-                        <div className="space-y-4">
-                          <div className="flex items-center justify-between">
-                            <h2 className="text-xl font-semibold text-white">LaTeX Code</h2>
-                            <div className="flex gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => copyToClipboard(currentPage.latex)}
-                              >
-                                <Copy className="h-4 w-4 mr-2" />
-                                Copy
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={async () => {
-                                  if (!showPreview) {
-                                    await handlePreviewRequest();
-                                  }
-                                  setShowPreview(prev => !prev);
-                                }}
-                              >
-                                {showPreview ? 'Hide Preview' : 'Show Preview'}
-                              </Button>
-                            </div>
-                          </div>
-                          
-                          {showPreview && compiledPdfUrl ? (
-                            <div className="mt-6 flex gap-0 w-full h-[80vh]">
-                              {/* LaTeX code container spans half the width and full height, with scrollbars hidden */}
-                              <pre className="w-1/2 h-full bg-gray-800/50 p-6 rounded-lg border border-gray-700 overflow-hidden">
-                                <code>{currentPage.latex}</code>
-                              </pre>
-                              {/* PDF preview container spans half the width and full height; scrollbars hidden */}
-                              <iframe
-                                src={`${compiledPdfUrl}#toolbar=0&navpanes=0&scrollbar=0`}
-                                className="w-1/2 h-full border border-gray-700 rounded-lg"
-                                title="LaTeX Preview"
-                                style={{ overflow: 'hidden' }}
-                              ></iframe>
-                            </div>
-                          ) : (
-                            // When preview is off, display only the LaTeX code (updated to be large as well)
-                            <pre className="w-full h-[80vh] bg-gray-800/50 p-6 rounded-lg border border-gray-700 overflow-hidden">
-                              <code>{currentPage.latex}</code>
-                            </pre>
-                          )}
-                        </div>
-                      </div>
-                    ) : (
-                      <label className="group relative block border-2 border-dashed border-gray-700 rounded-xl p-12 hover:border-blue-500 transition-all cursor-pointer">
-                        <input
-                          type="file"
-                          className="hidden"
-                          accept="image/*"
-                          onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-                        />
-                        <div className="flex flex-col items-center">
-                          <div className="p-4 bg-blue-500/10 rounded-full mb-4 group-hover:bg-blue-500/20 transition-colors">
-                            <Upload className="h-8 w-8 text-blue-500" />
-                          </div>
-                          <p className="text-gray-400 mb-2 font-medium">Drop your image here or click to upload</p>
-                          <p className="text-gray-500 text-sm">Supports PNG, JPG, or WebP</p>
-                        </div>
-                      </label>
-                    )}
-                    
-                    {selectedFile && !currentPage.latex && (
-                      <div className="mt-4">
-                        <div className="flex items-center gap-3 p-4 bg-gray-800/50 rounded-lg border border-gray-700">
-                          <FileText className="h-5 w-5 text-blue-500" />
-                          <span className="text-gray-300">{selectedFile.name}</span>
-                        </div>
+              <div className="flex-1 overflow-hidden">
+                {currentPage.latex ? (
+                  <div className="h-full">
+                    <div className="flex justify-between items-center p-4 border-b border-gray-800/40">
+                      <h2 className="text-xl font-semibold text-white">LaTeX Code</h2>
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm" onClick={() => copyToClipboard(currentPage.latex)}>
+                          <Copy className="h-4 w-4 mr-2" />
+                          Copy
+                        </Button>
                         <Button
-                          className="w-full mt-4 bg-blue-600 hover:bg-blue-500 text-white py-6 text-lg"
-                          onClick={handleUpload}
-                          disabled={loading}
+                          variant="outline"
+                          size="sm"
+                          onClick={async () => {
+                            if (!showPreview) {
+                              await handlePreviewRequest();
+                            }
+                            setShowPreview(prev => !prev);
+                          }}
                         >
-                          {loading ? (
-                            <div className="flex items-center gap-2">
-                              <div className="animate-spin rounded-full h-5 w-5 border-2 border-white/30 border-t-white" />
-                              Converting...
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-2">
-                              Convert to LaTeX
-                              <ChevronRight className="h-5 w-5" />
-                            </div>
-                          )}
+                          {showPreview ? 'Hide Preview' : 'Show Preview'}
                         </Button>
                       </div>
+                    </div>
+
+                    {showPreview && compiledPdfUrl ? (
+                      <div className="flex h-[calc(100vh-12rem)] divide-x divide-gray-800">
+                        <pre className="w-1/2 overflow-auto p-6 bg-gray-900/50">
+                          <code className="text-sm text-gray-300">{currentPage.latex}</code>
+                        </pre>
+                        <iframe
+                          src={`${compiledPdfUrl}#toolbar=0&navpanes=0&scrollbar=0`}
+                          className="w-1/2 bg-white"
+                          title="LaTeX Preview"
+                        />
+                      </div>
+                    ) : (
+                      <pre className="h-[calc(100vh-12rem)] overflow-auto p-6 bg-gray-900/50">
+                        <code className="text-sm text-gray-300">{currentPage.latex}</code>
+                      </pre>
                     )}
                   </div>
-                </Card>
+                ) : (
+                  <div className="p-8">
+                    <Card className="bg-gray-900/50 border-gray-800/50">
+                      <div className="p-8 space-y-6">
+                        <label className="group relative block border-2 border-dashed border-gray-700 rounded-xl p-12 hover:border-blue-500 transition-all cursor-pointer">
+                          <input
+                            type="file"
+                            className="hidden"
+                            accept="image/*"
+                            onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                          />
+                          <div className="flex flex-col items-center">
+                            <div className="p-4 bg-blue-500/10 rounded-full mb-4 group-hover:bg-blue-500/20 transition-colors">
+                              <Upload className="h-8 w-8 text-blue-500" />
+                            </div>
+                            <p className="text-gray-400 mb-2 font-medium">Drop your image here or click to upload</p>
+                            <p className="text-gray-500 text-sm">Supports PNG, JPG, or WebP</p>
+                          </div>
+                        </label>
+                        
+                        {selectedFile && !currentPage.latex && (
+                          <div className="mt-4">
+                            <div className="flex items-center gap-3 p-4 bg-gray-800/50 rounded-lg border border-gray-700">
+                              <FileText className="h-5 w-5 text-blue-500" />
+                              <span className="text-gray-300">{selectedFile.name}</span>
+                            </div>
+                            <Button
+                              className="w-full mt-4 bg-blue-600 hover:bg-blue-500 text-white py-6 text-lg"
+                              onClick={handleUpload}
+                              disabled={loading}
+                            >
+                              {loading ? (
+                                <div className="flex items-center gap-2">
+                                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-white/30 border-t-white" />
+                                  Converting...
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-2">
+                                  Convert to LaTeX
+                                  <ChevronRight className="h-5 w-5" />
+                                </div>
+                              )}
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    </Card>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </main>
       </div>
     </div>
