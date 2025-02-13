@@ -10,7 +10,7 @@ app = Flask(__name__)
 CORS(app)  # Enable CORS
 
 # Use an environment variable for security
-API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyBro6NN2uS-6QM79dlxEKXAV9ORTsdtTc8")
+API_KEY = os.getenv("GEMINI_API_KEY", )
 client = genai.Client(api_key=API_KEY)
 
 @app.route('/generate-latex-notes', methods=['POST'])
