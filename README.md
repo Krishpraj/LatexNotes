@@ -20,7 +20,7 @@
 
 Watch a quick demo of Thorem in action:
 
-[![Watch the video](https://raw.githubusercontent.com/kushalpraja/Thorem/master/Screenshot%202025-02-13%020340.png)](https://raw.githubusercontent.com/kushalpraja/Thorem/master/DEMOVID.mp4)
+[![Watch the video](https://raw.githubusercontent.com/kushalpraja/Thorem/main/Screenshot%202025-02-13%20020340.png)](https://raw.githubusercontent.com/kushalpraja/Thorem/main/DEMOVID.mp4)
 
 ## 🚀 Elevate Your Math Workflow
 
