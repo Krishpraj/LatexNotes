@@ -16,4 +16,5 @@ body {
   min-height: 100vh;
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
+  font-family: 'Geist Mono', monospace;
 }
