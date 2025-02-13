@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Upload, FileText, ChevronRight, Github, Copy, Download, Menu, X, Trash2, Settings } from 'lucide-react';
+import { Upload, FileText, ChevronRight, Copy, Download, Menu, X, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { toast } from "@/hooks/use-toast";
@@ -36,6 +36,11 @@ function App() {
   useEffect(() => {
     localStorage.setItem('projects', JSON.stringify(projects));
   }, [projects]);
+
+  useEffect(() => {
+    setCompiledPdfUrl(null);
+    setShowPreview(false);
+  }, [currentPage]);
 
   const handleCreateProject = (name: string) => {
     const newProject: Project = {
@@ -109,49 +114,6 @@ function App() {
       toast({
         title: "Success",
         description: "LaTeX generated successfully",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to process image",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleUpdatePage = async (projectId: string, pageId: string, file: File) => {
-    setLoading(true);
-    const formData = new FormData();
-    formData.append('image', file);
-
-    try {
-      const response = await fetch('http://localhost:3001/api/analyze', {
-        method: 'POST',
-        body: formData,
-      });
-      const data = await response.json();
-      
-      if (data.error) throw new Error(data.error);
-
-      setProjects(prev => prev.map(project => {
-        if (project.id === projectId) {
-          return {
-            ...project,
-            pages: project.pages.map(page => 
-              page.id === pageId ? { ...page, latex: data.latex } : page
-            )
-          };
-        }
-        return project;
-      }));
-
-      setCurrentPage(prev => prev && prev.id === pageId ? { ...prev, latex: data.latex } : prev);
-      setLatex(data.latex);
-      toast({
-        title: "Success",
-        description: "Page updated successfully",
       });
     } catch (error) {
       toast({
@@ -388,7 +350,6 @@ function App() {
           onSelectProject={handleSelectProject}
           onSelectPage={handleSelectPage}
           onCreateProject={handleCreateProject}
-          onUpdatePage={handleUpdatePage}
           onExportProject={handleExportProject}
           onCreatePage={handleCreateEmptyPage}
           onDeleteProject={handleDeleteProject}

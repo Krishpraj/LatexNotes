@@ -1,8 +1,7 @@
 import { useState } from 'react';
-import { PlusCircle, FileText, Edit2, Download, Check, Plus, Trash2, MoreVertical } from 'lucide-react';
+import { PlusCircle, FileText, Edit2, Download, Plus, Trash2, MoreVertical } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { Card } from './ui/card';
 import type { Project, Page } from '@/types';
 import {
   DropdownMenu,
@@ -18,7 +17,6 @@ interface ProjectSidebarProps {
   onSelectProject: (project: Project) => void;
   onSelectPage: (project: Project, page: Page) => void;
   onCreateProject: (name: string) => void;
-  onUpdatePage: (projectId: string, pageId: string, newTitle: string) => void;
   onExportProject: (project: Project) => void;
   onCreatePage: (projectId: string) => void;
   onDeleteProject: (projectId: string) => void;
@@ -34,7 +32,6 @@ export function ProjectSidebar({
   onSelectProject,
   onSelectPage,
   onCreateProject,
-  onUpdatePage,
   onExportProject,
   onCreatePage,
   onDeleteProject,
