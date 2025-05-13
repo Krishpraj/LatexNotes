@@ -1,90 +1,199 @@
 
-# Image to LaTeX Converter
+https://github.com/user-attachments/assets/59d20ff8-47e1-4aa5-be7e-72c09baa97a6
 
-## Overview
-The **Image to LaTeX Converter** is a web application that allows users to upload images containing mathematical equations or text, converting them into LaTeX code. The tool also compiles the LaTeX code into a downloadable or previewable PDF. It is designed for researchers, students, and professionals who work with LaTeX and need an efficient way to digitize or edit existing documents.
+# 📝 LatexNotes
 
-## Features
-- Upload images for conversion
-- Extracts text and mathematical equations
-- Converts equations into LaTeX syntax
-- Supports tables and lists
-- Generates a `.tex` file for easy editing
-- Compiles LaTeX code into a PDF for download or preview
+LatexNotes is a powerful SaaS platform designed to convert handwritten math notes into professional-quality LaTeX code using **Gemini AI**, with real-time previews powered by **Tectonic**. Users can organize notes into projects, add image-based pages, and export entire projects as polished PDFs with customizable title pages.
 
-## Technologies Used
-### Frontend:
-- **Next.js**
-- **TypeScript**
-- **Tailwind CSS**
-- **HTML**
-- **Node.js**
+---
 
-### Backend:
-- **Python**
-- **Flask**
-- **Tectonic** (for LaTeX compilation)
-- **Gemini AI API** (for text and equation recognition)
+## 🚀 Features
 
-## Requirements
-- Python 3.x
-- `pytesseract` and `Pillow` for OCR
-- `Flask` for backend services
-- `Tectonic` for LaTeX compilation
-- `Gemini AI API` for AI-powered text extraction
+- **Intelligent Image to LaTeX Conversion**  
+  Leverage AI to accurately convert images of handwritten notes into LaTeX code.
+  
+- **Real-Time LaTeX Preview**  
+  Instantly visualize rendered LaTeX output for quick verification and edits.
+  
+- **Intuitive User Interface**  
+  Clean, responsive, and user-friendly design using React + TailwindCSS.
+  
+- **RESTful API Backend**  
+  Seamless interaction between frontend and backend using Axios.
+  
+- **Comprehensive LaTeX Support**  
+  Full LaTeX preamble for compatibility across environments.
+  
+- **Project Management System**  
+  Organize notes into multiple projects and pages with custom descriptions.
+  
+- **Customizable Output**  
+  Modify LaTeX code to suit specific formatting needs.
+  
+- **PDF Export**  
+  Generate professional PDFs directly from your projects.
 
-### Install dependencies
+---
+
+## 🛠️ Technologies Used
+
+- React  
+- TypeScript  
+- TailwindCSS  
+- Gemini API  
+- Tectonic  
+- Axios
+
+---
+
+## 📦 Prerequisites
+
+- Node.js (v18 or higher)  
+- npm (v9 or higher)
+
+---
+
+## 📥 Installation
+
 ```bash
-pip install flask pytesseract pillow tectonic
-```
+# Clone the repository
+git clone https://github.com/yourusername/thorem.git
+cd thorem
 
-## Installation
-### Clone the repository
-```bash
-git clone https://github.com/yourusername/image-to-latex.git
-cd image-to-latex
-```
-
-## Usage
-### Start Backend
-```bash
-python app.py
-```
-
-### Start Frontend
-```bash
+# Install server dependencies
 npm install
-npm run dev
+
+# Install client dependencies
+cd client
+npm install
+cd ..
+````
+
+---
+
+## ⚙️ Configuration
+
+Create a `.env` file in the root directory:
+
+```bash
+cp .env.example .env
 ```
 
-## Optional Flags
-- `--ocr` : Enables OCR for scanned images
-- `--no-math` : Disables equation conversion
-- `--verbose` : Enables detailed logging
+Then configure the necessary variables:
 
-## Output Format
-The generated `.tex` file will include:
-- Section headings
-- Paragraphs with proper indentation
-- Inline and block equations
-- Tables formatted in LaTeX
-- Figures with placeholders for manual insertion
+```env
+# Backend Configuration
+PORT=3001
+# Optional: DATABASE_URL=your_database_connection_string
 
-Users can preview or download the compiled PDF.
+# Frontend Configuration
+CLIENT_PORT=3000
+```
 
-## Limitations
-- Complex layouts may not be perfectly converted
-- Handwritten equations require OCR tuning
-- Embedded images are not extracted
+---
 
-## Contribution
-Feel free to contribute by submitting issues or pull requests.
+## 🚀 Running the Application
 
-## License
-This project is licensed under the MIT License.
+### Development Mode
 
-## Contact
-For any issues or suggestions, reach out via GitHub or email at `krix6688@gmail.com`.
+Start the backend server:
+
+```bash
+npm run server
+```
+
+Start the frontend development server:
+
+```bash
+npm run client
+```
+
+Access the application at: [http://localhost:3000](http://localhost:3000)
+
+### Production Mode
+
+Build the frontend:
+
+```bash
+cd client
+npm run build
+cd ..
+```
+
+Start the backend:
+
+```bash
+npm start
+```
+
+---
+
+## 📖 Usage Guide
+
+1. **Create a New Project**
+   Use the sidebar to create a new notes project.
+
+2. **Add Pages**
+   Add pages to the project for different sections or topics.
+
+3. **Upload Notes**
+   Upload images of handwritten notes to each page. AI handles the LaTeX conversion.
+
+4. **Edit LaTeX**
+   Refine or update the auto-generated LaTeX in the editor.
+
+5. **Preview**
+   See a live preview of the LaTeX document.
+
+6. **Export as .tex**
+   Download the LaTeX source file.
+
+7. **Export as PDF**
+   Generate a full PDF document with title pages and formatting.
+
+---
+
+## 🗂️ Project Structure
+
+```
+thorem/
+├── client/              # Frontend React application
+│   ├── public/          # Static assets
+│   └── src/             # React source code
+├── server/              # Backend Node.js server
+│   ├── api/             # API routes and controllers
+│   ├── models/          # Data models
+│   └── services/        # Business logic
+├── docs/                # Documentation
+├── tests/               # Test files
+└── scripts/             # Utility scripts
+```
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Here’s how:
+
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to your branch
+5. Open a Pull Request
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+---
+
+## 📫 Contact
+
+For questions or feedback, feel free to [open an issue](https://github.com/yourusername/thorem/issues)
+or reach out via [krishprajapati.me](https://krishprajapati.me).
+
 
 
 
